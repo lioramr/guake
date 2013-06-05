@@ -823,37 +823,19 @@ class Guake(SimpleGladeApp):
         """
         screen = self.window.get_screen()
         height = self.client.get_int(KEY('/general/window_height'))
-        width = 100
         halignment = self.client.get_int(KEY('/general/window_halignment'))
 
         # get the rectangle just from the first/default monitor in the
         # future we might create a field to select which monitor you
         # wanna use
-        window_rect = screen.get_monitor_geometry(0)
-        if os.environ.get('DESKTOP_SESSION')  == "ubuntu":
-            unity_hide = self.client.get_int(KEY('/apps/compiz-1/plugins/' \
-                'unityshell/screen0/options/launcher_hide_mode'))
-            # launcher_hide_mode = 1 => autohide
-            if unity_hide != 1:
-                # Size of the icons for Unity in Ubuntu <= 12.04
-                # TODO Ubuntu 12.10 use dconf :
-                # /org/compiz/profiles/unity/plugins/unityshell/icon-size
-                unity_icon_size = self.client.get_int(KEY('/apps/compiz-1/' \
-                    'plugins/unityshell/screen0/options/icon_size'))
-                unity_dock = unity_icon_size + 17
-                window_rect.width = window_rect.width - unity_dock
-        total_width = window_rect.width
-        window_rect.height = window_rect.height * height / 100
-        window_rect.width = window_rect.width * width / 100
+        display = gtk.gdk.display_get_default()
+        pointer = display.get_pointer()
+        monitor = screen.get_monitor_at_point(pointer[1],pointer[2])
 
-        if width < total_width:
-            if halignment == ALIGN_CENTER:
-                window_rect.x = (total_width - window_rect.width) / 2
-            elif halignment == ALIGN_LEFT:
-                window_rect.x = 0
-            elif halignment == ALIGN_RIGHT:
-                window_rect.x = total_width - window_rect.width
-        window_rect.y = 0
+        window_rect = screen.get_monitor_geometry(monitor)
+        window_rect.height = window_rect.height * height / 100
+
+        #window_rect.y = 0
         return window_rect
 
     def get_running_fg_processes(self):
